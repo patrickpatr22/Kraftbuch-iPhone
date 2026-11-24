@@ -1,0 +1,17 @@
+{
+  "appId": "de.kraftbuch.app",
+  "appName": "Kraftbuch",
+  "webDir": "www",
+  "backgroundColor": "#0C0A09",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": true,
+    "allowsLinkPreview": false,
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#FF6B35"
+    }
+  }
+}

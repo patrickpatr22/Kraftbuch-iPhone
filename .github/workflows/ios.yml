@@ -1,0 +1,59 @@
+name: iOS-App bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md']
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - name: Projekt holen
+        uses: actions/checkout@v6
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Pakete installieren
+        run: npm ci
+
+      - name: iPhone-Brücke bündeln
+        run: npm run build
+
+      - name: Web-App ins iOS-Projekt kopieren
+        run: npx cap sync ios
+
+      - name: Xcode-Version anzeigen
+        run: xcodebuild -version
+
+      - name: App bauen (ohne Signatur – das macht später Sideloadly)
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            -quiet build
+
+      - name: IPA-Datei packen
+        run: |
+          APP="ios/App/build/Build/Products/Release-iphoneos/App.app"
+          test -d "$APP"
+          rm -rf Payload && mkdir Payload && cp -R "$APP" Payload/
+          zip -qry Kraftbuch.ipa Payload
+          ls -la Kraftbuch.ipa
+
+      - name: IPA zum Herunterladen bereitstellen
+        uses: actions/upload-artifact@v6
+        with:
+          name: Kraftbuch-IPA
+          path: Kraftbuch.ipa
+          if-no-files-found: error
+          retention-days: 30
