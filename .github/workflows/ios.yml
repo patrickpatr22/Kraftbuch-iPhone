@@ -7,7 +7,7 @@ on:
     paths-ignore: ['**.md']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   ipa:
@@ -57,3 +57,10 @@ jobs:
           path: Kraftbuch.ipa
           if-no-files-found: error
           retention-days: 30
+
+      - name: IPA zusätzlich im Branch "ipa" ablegen
+        run: |
+          rm -rf ipa-out && mkdir ipa-out && cp Kraftbuch.ipa ipa-out/ && cd ipa-out
+          git init -q -b ipa && git add Kraftbuch.ipa
+          git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" commit -qm "Kraftbuch.ipa – Bau ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipa
